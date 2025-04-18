@@ -1,39 +1,29 @@
 import { Seat } from "@/types/types";
+import { RedisClient } from "./RedisClient";
 
 export class ScreenAvailabilityService {
-    private static instance: ScreenAvailabilityService;
+    constructor(private readonly redisClient: RedisClient) {}
 
-    private constructor() {}
+    async getSeatAvailability(screenId: number): Promise<Seat[]> {
+        const key = `screen:${screenId}:availability`;
+        const cachedAvailability = await this.redisClient.get(key);
 
-    static getInstance(): ScreenAvailabilityService {
-        if (!ScreenAvailabilityService.instance) {
-            ScreenAvailabilityService.instance = new ScreenAvailabilityService();
+        if (cachedAvailability) {
+            return JSON.parse(cachedAvailability);
         }
-        return ScreenAvailabilityService.instance;
+        return [];
     }
 
-    getSeatAvailability(screenId: number): Seat[] {
-        return [
-            { id: 1, available: true },
-            { id: 2, available: true },
-            { id: 3, available: true },
-            { id: 4, available: true },
-            { id: 5, available: true },
-            { id: 6, available: true },
-            { id: 7, available: false },
-            { id: 8, available: false },
-            { id: 9, available: true },
-            { id: 10, available: true },
-            { id: 11, available: true },
-            { id: 12, available: true },
-            { id: 13, available: true },
-            { id: 14, available: true },
-            { id: 15, available: true },
-            { id: 16, available: true },
-            { id: 17, available: true },
-            { id: 18, available: true },
-            { id: 19, available: true },
-        ];
+    async updateSeatAvailability(screenId: number, seatId: number, available: boolean): Promise<void> {
+        const key = `screen:${screenId}:availability`;
+        const availability = await this.getSeatAvailability(screenId);
+        const seat = availability.find(seat => seat.id === seatId);
+        if (seat) {
+            seat.available = available;
+        } else {
+            availability.push({ id: seatId, available });
+        }
+        await this.redisClient.set(key, JSON.stringify(availability));
     }
 }
 

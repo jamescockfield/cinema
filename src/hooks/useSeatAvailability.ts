@@ -11,19 +11,16 @@ export const useSeatAvailability = () => {
     useEffect(() => {
         if (!socket || !isConnected) return;
 
-        // Join the room for this screen
-        socket.emit('join', 'screen:1');
-
         const handleSeatUpdate = (data: { seats: Seat[] }) => {
             setSeats(data.seats);
         };
 
+        socket.emit('join', 'screen:1');
         socket.on('seatUpdate', handleSeatUpdate);
 
         return () => {
-            socket.off('seatUpdate', handleSeatUpdate);
-            // Leave the room when component unmounts
             socket.emit('leave', 'screen:1');
+            socket.off('seatUpdate', handleSeatUpdate);
         };
     }, [socket, isConnected]);
 

@@ -4,10 +4,12 @@ import type { Socket } from 'socket.io';
 import { ScreenAvailabilityService } from './ScreenAvailabilityService';
 
 export class WebSocketServer {
-    private static instance: WebSocketServer;
     private io: SocketIOServer;
 
-    private constructor(httpServer: HTTPServer) {
+    constructor(
+        httpServer: HTTPServer,
+        private screenAvailabilityService: ScreenAvailabilityService
+    ) {
         this.io = new SocketIOServer(httpServer, {
             path: '/api/ws',
             addTrailingSlash: false,
@@ -24,12 +26,11 @@ export class WebSocketServer {
         this.io.on('connection', (socket: Socket) => {
             console.log('Client connected');
 
-            // Handle room joining/leaving
-            socket.on('join', (room: string) => {
-                socket.join(room);
-                const screenId = parseInt(room.split(':')[1]);
-                this.broadcastSeatUpdate(screenId, ScreenAvailabilityService.getInstance().getSeatAvailability(screenId));
+            socket.on('join', async (room: string) => {
+                await socket.join(room);
                 console.log(`Client joined room: ${room}`);
+                const screenId = parseInt(room.split(':')[1]);
+                this.broadcastSeatUpdate(screenId, await this.screenAvailabilityService.getSeatAvailability(screenId));
             });
 
             socket.on('leave', (room: string) => {
@@ -47,21 +48,10 @@ export class WebSocketServer {
         });
     }
 
-    static getInstance(httpServer: HTTPServer | null = null): WebSocketServer {
-        if (!WebSocketServer.instance) {
-            if (!httpServer) {
-                throw new Error('httpServer is required to init the WebSocketServer');
-            }
-            WebSocketServer.instance = new WebSocketServer(httpServer);
-        }
-        return WebSocketServer.instance;
-    }
-
     getIO(): SocketIOServer {
         return this.io;
     }
 
-    // Method to broadcast seat updates to a specific screen room
     broadcastSeatUpdate(screenId: number, seats: any[]): void {
         this.io.to(`screen:${screenId}`).emit('seatUpdate', { seats });
     }
