@@ -1,6 +1,8 @@
 import { Seat } from "@/types/types";
-import { RedisClient } from "./RedisClient";
+import { RedisClient } from "../redis/RedisClient";
+import { injectable } from "tsyringe";
 
+@injectable()
 export class ScreenAvailabilityService {
     constructor(private readonly redisClient: RedisClient) {}
 

@@ -1,13 +1,15 @@
 import { Server as SocketIOServer } from 'socket.io';
 import type { Server as HTTPServer } from 'http';
 import type { Socket } from 'socket.io';
-import { ScreenAvailabilityService } from './ScreenAvailabilityService';
+import { ScreenAvailabilityService } from '../availability/ScreenAvailabilityService';
+import { injectable, inject } from 'tsyringe';
 
+@injectable()
 export class WebSocketServer {
     private io: SocketIOServer;
 
     constructor(
-        httpServer: HTTPServer,
+        @inject('httpServer') httpServer: HTTPServer,
         private screenAvailabilityService: ScreenAvailabilityService
     ) {
         this.io = new SocketIOServer(httpServer, {

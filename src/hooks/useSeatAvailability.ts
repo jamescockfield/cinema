@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useWebSocket } from '@/context/WebSocketContext';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 import { Seat } from '@/types/types';
 
 export const useSeatAvailability = () => {

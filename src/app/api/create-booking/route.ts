@@ -1,4 +1,4 @@
-import { createBooking } from '@/services/createBooking';
+import { createBooking } from '@/lib/booking/createBooking';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {

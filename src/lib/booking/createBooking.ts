@@ -1,7 +1,8 @@
-import { container } from "../container";
+import { container } from "../../container";
+import { ScreenAvailabilityService } from '../availability/ScreenAvailabilityService';
 
 export const createBooking = async (screenId: number, seatId: number) => {
-    const screenAvailabilityService = container.getScreenAvailability();
+    const screenAvailabilityService = container.resolve(ScreenAvailabilityService);
     const seatAvailability = await screenAvailabilityService.getSeatAvailability(screenId);
     const seat = seatAvailability.find((seat: { id: number; available: boolean }) => seat.id === seatId);
     if (!seat) {

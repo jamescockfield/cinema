@@ -6,7 +6,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "next build",
     "start": "NODE_ENV=production tsx src/server.ts",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss}\""
   },
   "dependencies": {
     "@types/socket.io": "^3.0.1",
@@ -16,8 +17,10 @@
     "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "tsyringe": "^4.10.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
+    "prettier": "^3.5.3",
     "tailwindcss": "^4",
     "tsx": "^4.19.3",
     "typescript": "^5"

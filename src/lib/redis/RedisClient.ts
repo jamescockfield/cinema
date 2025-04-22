@@ -1,12 +1,14 @@
 import { Redis } from "ioredis";
+import { injectable } from "tsyringe";
 
 export interface RedisConfig {
     host: string;
     port: number;
 }
 
+@injectable()
 export class RedisClient {
-    constructor(private redis: Redis) {}
+    constructor(private readonly redis: Redis) {}
 
     async get(key: string): Promise<string | null> {
         return await this.redis.get(key);

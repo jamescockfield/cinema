@@ -1,19 +1,16 @@
 import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
-import { RedisConfig } from './services/RedisClient';
 import { container } from './container';
+import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityService';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-const redisConfig: RedisConfig = {
-    host: process.env.REDIS_HOST || "localhost",
-    port: parseInt(process.env.REDIS_PORT || "6379"),
-};
-
 app.prepare().then(async () => {
+    await seedScreenAvailability();
+
     const server = createServer(async (req, res) => {
         try {
             const parsedUrl = parse(req.url!, true);
@@ -24,22 +21,18 @@ app.prepare().then(async () => {
             res.end('Internal server error');
         }
     });
+    container.registerInstance('httpServer', server);
 
-    // Initialize services
-    const redis = container.initializeRedis(redisConfig);
-    const redisClient = container.initializeRedisClient(redis);
-    const screenAvailabilityService = container.initializeScreenAvailability(redisClient);
-    const wsServer = container.initializeWebSocketServer(server, screenAvailabilityService);
-
-    await seedScreenAvailability(screenAvailabilityService);
 
     const port = parseInt(process.env.PORT || '3000', 10);
     server.listen(port, () => {
         console.log(`> Ready on http://localhost:${port}`);
     });
-}); 
+});
 
-const seedScreenAvailability = async (service: any) => {
+const seedScreenAvailability = async () => {
+    const service = container.resolve(ScreenAvailabilityService);
+
     await service.updateSeatAvailability(1, 1, true);
     await service.updateSeatAvailability(1, 2, true);
     await service.updateSeatAvailability(1, 3, true);
