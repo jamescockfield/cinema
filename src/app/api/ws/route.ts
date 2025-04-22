@@ -4,10 +4,10 @@ import { container } from '@/container';
 import { WebSocketServer } from '@/lib/websocket/WebSocketServer';
 
 export async function GET(req: NextRequest, res: NextApiResponseWithSocket) {
-    if (!res.socket?.server?.io) {
-        const wsServer = container.resolve(WebSocketServer);
-        res.socket.server.io = wsServer.getIO();
-    }
+  if (!res.socket?.server?.io) {
+    const wsServer = container.resolve(WebSocketServer);
+    res.socket.server.io = wsServer.getIO();
+  }
 
-    return new Response(null, { status: 200 });
+  return new Response(null, { status: 200 });
 }

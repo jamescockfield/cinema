@@ -1,4 +1,4 @@
 export interface Seat {
-    id: number;
-    available: boolean;
+  id: number;
+  available: boolean;
 }

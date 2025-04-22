@@ -1,4 +1,4 @@
-import { Screen } from "@/components/Screen"; 
+import { Screen } from '@/components/Screen';
 
 export default function Home() {
   return (
@@ -7,8 +7,7 @@ export default function Home() {
         <h1 className="text-2xl font-bold my-5">Cinema bookings</h1>
         <Screen />
       </main>
-      <footer>
-      </footer>
+      <footer></footer>
     </div>
   );
 }

@@ -6,55 +6,58 @@ import { injectable, inject } from 'tsyringe';
 
 @injectable()
 export class WebSocketServer {
-    private io: SocketIOServer;
+  private io: SocketIOServer;
 
-    constructor(
-        @inject('httpServer') httpServer: HTTPServer,
-        private screenAvailabilityService: ScreenAvailabilityService
-    ) {
-        this.io = new SocketIOServer(httpServer, {
-            path: '/api/ws',
-            addTrailingSlash: false,
-            cors: {
-                origin: "*",
-                methods: ["GET", "POST"]
-            }
-        });
+  constructor(
+    @inject('httpServer') httpServer: HTTPServer,
+    private screenAvailabilityService: ScreenAvailabilityService
+  ) {
+    this.io = new SocketIOServer(httpServer, {
+      path: '/api/ws',
+      addTrailingSlash: false,
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+      },
+    });
 
-        this.setupSocketEvents();
-    }
+    this.setupSocketEvents();
+  }
 
-    private setupSocketEvents(): void {
-        this.io.on('connection', (socket: Socket) => {
-            console.log('Client connected');
+  private setupSocketEvents(): void {
+    this.io.on('connection', (socket: Socket) => {
+      console.log('Client connected');
 
-            socket.on('join', async (room: string) => {
-                await socket.join(room);
-                console.log(`Client joined room: ${room}`);
-                const screenId = parseInt(room.split(':')[1]);
-                this.broadcastSeatUpdate(screenId, await this.screenAvailabilityService.getSeatAvailability(screenId));
-            });
+      socket.on('join', async (room: string) => {
+        await socket.join(room);
+        console.log(`Client joined room: ${room}`);
+        const screenId = parseInt(room.split(':')[1]);
+        this.broadcastSeatUpdate(
+          screenId,
+          await this.screenAvailabilityService.getSeatAvailability(screenId)
+        );
+      });
 
-            socket.on('leave', (room: string) => {
-                socket.leave(room);
-                console.log(`Client left room: ${room}`);
-            });
+      socket.on('leave', (room: string) => {
+        socket.leave(room);
+        console.log(`Client left room: ${room}`);
+      });
 
-            socket.on('disconnect', () => {
-                console.log('Client disconnected');
-            });
+      socket.on('disconnect', () => {
+        console.log('Client disconnected');
+      });
 
-            socket.on('error', (err: Error) => {
-                console.error('Socket error:', err);
-            });
-        });
-    }
+      socket.on('error', (err: Error) => {
+        console.error('Socket error:', err);
+      });
+    });
+  }
 
-    getIO(): SocketIOServer {
-        return this.io;
-    }
+  getIO(): SocketIOServer {
+    return this.io;
+  }
 
-    broadcastSeatUpdate(screenId: number, seats: any[]): void {
-        this.io.to(`screen:${screenId}`).emit('seatUpdate', { seats });
-    }
-} 
+  broadcastSeatUpdate(screenId: number, seats: any[]): void {
+    this.io.to(`screen:${screenId}`).emit('seatUpdate', { seats });
+  }
+}

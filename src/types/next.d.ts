@@ -4,13 +4,13 @@ import { Server as IOServer } from 'socket.io';
 import { NextApiResponse } from 'next';
 
 interface SocketServer extends HTTPServer {
-    io?: IOServer;
+  io?: IOServer;
 }
 
 interface SocketWithIO extends NetSocket {
-    server: SocketServer;
+  server: SocketServer;
 }
 
 interface NextApiResponseWithSocket extends NextApiResponse {
-    socket: SocketWithIO;
-} 
+  socket: SocketWithIO;
+}

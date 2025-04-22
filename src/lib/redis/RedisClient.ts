@@ -1,28 +1,28 @@
-import { Redis } from "ioredis";
-import { injectable } from "tsyringe";
+import { Redis } from 'ioredis';
+import { injectable } from 'tsyringe';
 
 export interface RedisConfig {
-    host: string;
-    port: number;
+  host: string;
+  port: number;
 }
 
 @injectable()
 export class RedisClient {
-    constructor(private readonly redis: Redis) {}
+  constructor(private readonly redis: Redis) {}
 
-    async get(key: string): Promise<string | null> {
-        return await this.redis.get(key);
-    }
+  async get(key: string): Promise<string | null> {
+    return await this.redis.get(key);
+  }
 
-    async set(key: string, value: string): Promise<void> {
-        await this.redis.set(key, value);
-    }
+  async set(key: string, value: string): Promise<void> {
+    await this.redis.set(key, value);
+  }
 
-    async del(key: string): Promise<void> {
-        await this.redis.del(key);
-    }
+  async del(key: string): Promise<void> {
+    await this.redis.del(key);
+  }
 
-    async expire(key: string, seconds: number): Promise<void> {
-        await this.redis.expire(key, seconds);
-    }
+  async expire(key: string, seconds: number): Promise<void> {
+    await this.redis.expire(key, seconds);
+  }
 }
