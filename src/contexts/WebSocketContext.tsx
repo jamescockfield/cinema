@@ -24,9 +24,12 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const socketInstance = io('http://localhost:3000', {
-      path: '/api/ws',
+    const socketInstance = io({
+      path: '/ws',
       addTrailingSlash: false,
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     socketInstance.on('connect', () => {
@@ -37,6 +40,10 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     socketInstance.on('disconnect', () => {
       setIsConnected(false);
       console.log('Socket.IO Disconnected');
+    });
+
+    socketInstance.on('connect_error', (error) => {
+      console.error('Socket.IO Connection Error:', error);
     });
 
     setSocket(socketInstance);

@@ -1,16 +1,16 @@
+import 'reflect-metadata';
 import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { container } from './container';
 import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityService';
+import { WebSocketServer } from './lib/websocket/WebSocketServer';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-app.prepare().then(async () => {
-  await seedScreenAvailability();
-
+async function startServer() {
   const server = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url!, true);
@@ -21,13 +21,20 @@ app.prepare().then(async () => {
       res.end('Internal server error');
     }
   });
+
   container.registerInstance('httpServer', server);
+
+  const wsServer = container.resolve(WebSocketServer);
+  wsServer.initialize();
+  console.log('WebSocket server ready on http://localhost:3000/ws');
 
   const port = parseInt(process.env.PORT || '3000', 10);
   server.listen(port, () => {
-    console.log(`> Ready on http://localhost:${port}`);
+    console.log(`Server ready on http://localhost:${port}`);
   });
-});
+
+  await seedScreenAvailability();
+}
 
 const seedScreenAvailability = async () => {
   const service = container.resolve(ScreenAvailabilityService);
@@ -49,3 +56,5 @@ const seedScreenAvailability = async () => {
   await service.updateSeatAvailability(1, 15, true);
   await service.updateSeatAvailability(1, 16, true);
 };
+
+app.prepare().then(startServer);

@@ -1,41 +1,57 @@
 import { Server as SocketIOServer } from 'socket.io';
 import type { Server as HTTPServer } from 'http';
 import type { Socket } from 'socket.io';
-import { ScreenAvailabilityService } from '../availability/ScreenAvailabilityService';
 import { injectable, inject } from 'tsyringe';
+import { EventRegistration, SocketEventHandler } from './types';
 
 @injectable()
 export class WebSocketServer {
-  private io: SocketIOServer;
+  private io: SocketIOServer | null = null;
+  private eventHandlers: Map<string, SocketEventHandler[]> = new Map();
 
-  constructor(
-    @inject('httpServer') httpServer: HTTPServer,
-    private screenAvailabilityService: ScreenAvailabilityService
-  ) {
-    this.io = new SocketIOServer(httpServer, {
-      path: '/api/ws',
-      addTrailingSlash: false,
-      cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-      },
-    });
+  constructor(@inject('httpServer') private httpServer: HTTPServer) {}
 
-    this.setupSocketEvents();
+  public initialize(): void {
+    if (!this.io) {
+      this.io = new SocketIOServer(this.httpServer, {
+        path: '/ws',
+        addTrailingSlash: false,
+        cors: {
+          origin: '*',
+          methods: ['GET', 'POST'],
+        },
+        transports: ['websocket'],
+        allowEIO3: true,
+      });
+
+      this.setupSocketEvents();
+    }
+  }
+
+  public registerEventHandler(registration: EventRegistration): void {
+    const handlers = this.eventHandlers.get(registration.event) || [];
+    handlers.push(registration.handler);
+    this.eventHandlers.set(registration.event, handlers);
   }
 
   private setupSocketEvents(): void {
+    if (!this.io) return;
+
     this.io.on('connection', (socket: Socket) => {
       console.log('Client connected');
 
       socket.on('join', async (room: string) => {
         await socket.join(room);
         console.log(`Client joined room: ${room}`);
-        const screenId = parseInt(room.split(':')[1]);
-        this.broadcastSeatUpdate(
-          screenId,
-          await this.screenAvailabilityService.getSeatAvailability(screenId)
-        );
+
+        const handlers = this.eventHandlers.get('join') || [];
+        for (const handler of handlers) {
+          try {
+            await handler(room, socket);
+          } catch (error) {
+            console.error('Error in join handler:', error);
+          }
+        }
       });
 
       socket.on('leave', (room: string) => {
@@ -53,11 +69,8 @@ export class WebSocketServer {
     });
   }
 
-  getIO(): SocketIOServer {
-    return this.io;
-  }
-
-  broadcastSeatUpdate(screenId: number, seats: any[]): void {
-    this.io.to(`screen:${screenId}`).emit('seatUpdate', { seats });
+  public broadcast(room: string, event: string, data: any): void {
+    if (!this.io) return;
+    this.io.to(room).emit(event, data);
   }
 }
