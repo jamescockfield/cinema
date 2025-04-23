@@ -1,8 +1,5 @@
-import { Redis } from 'ioredis';
 import { container } from '../../container';
 import { ScreenAvailabilityService } from '../availability/ScreenAvailabilityService';
-import { RedisClient } from '../redis/RedisClient';
-import { WebSocketServer } from '../websocket/WebSocketServer';
 
 export const createBooking = async (screenId: number, seatId: number) => {
   const screenAvailabilityService = container.resolve(ScreenAvailabilityService);

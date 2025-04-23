@@ -20,6 +20,6 @@ export interface EventRegistration {
   handler: SocketEventHandler;
 }
 
-interface SocketServer extends HTTPServer {
+export interface SocketServer extends HTTPServer {
   io?: IOServer;
 }
