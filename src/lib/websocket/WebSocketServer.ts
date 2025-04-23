@@ -21,26 +21,12 @@ export class WebSocketServer {
         console.log(`Client joined room: ${room}`);
 
         const handlers = this.eventHandlers.get(SocketEvent.JOIN) || [];
-        for (const handler of handlers) {
-          try {
-            await handler(room, socket);
-          } catch (error) {
-            console.error('Error in join handler:', error);
-          }
-        }
+        await Promise.all(handlers.map((handler) => handler(room, socket)));
       });
 
       socket.on(SocketEvent.LEAVE, (room: string) => {
         socket.leave(room);
         console.log(`Client left room: ${room}`);
-      });
-
-      socket.on(SocketEvent.DISCONNECT, () => {
-        console.log('Client disconnected');
-      });
-
-      socket.on(SocketEvent.ERROR, (err: Error) => {
-        console.error('Socket error:', err);
       });
     });
   }

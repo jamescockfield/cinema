@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface WebSocketContextType {
@@ -32,17 +26,20 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
       reconnectionDelay: 1000,
     });
 
+    setIsConnected(socketInstance.connected);
+
     socketInstance.on('connect', () => {
-      setIsConnected(true);
+      setIsConnected(socketInstance.connected);
       console.log('Socket.IO Connected');
     });
 
     socketInstance.on('disconnect', () => {
-      setIsConnected(false);
+      setIsConnected(socketInstance.connected);
       console.log('Socket.IO Disconnected');
     });
 
     socketInstance.on('connect_error', (error) => {
+      setIsConnected(socketInstance.connected);
       console.error('Socket.IO Connection Error:', error);
     });
 
@@ -53,11 +50,7 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  return (
-    <WebSocketContext.Provider value={{ socket, isConnected }}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
 };
 
 export const useWebSocket = () => useContext(WebSocketContext);

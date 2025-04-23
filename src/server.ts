@@ -3,12 +3,25 @@ import { createServer } from 'http';
 import next from 'next';
 import { container } from './container';
 import { ScreenAvailabilityCache } from './lib/availability/ScreenAvailabilityCache';
+import { getSocketIoServer } from './lib/websocket/getSocketIoServer';
+import { WebSocketServer } from './lib/websocket/WebSocketServer';
+import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityService';
+import { SocketServer } from './lib/websocket/types';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 
 async function startServer() {
-  const server = createServer(app.getRequestHandler());
+  const server = createServer(async (req, res) => {
+    if (!server.io) {
+      console.log('Initializing Socket.IO server for this instance');
+      server.io = await getSocketIoServer(server);
+      container.registerInstance(WebSocketServer, new WebSocketServer(server.io));
+      container.resolve(ScreenAvailabilityService); // register availability broadcasts over socket
+    }
+
+    return app.getRequestHandler()(req, res);
+  }) as SocketServer;
 
   const port = parseInt(process.env.PORT || '3000', 10);
   server.listen(port, () => {

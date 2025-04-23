@@ -21,7 +21,9 @@ export class ScreenAvailabilityService {
         const [roomType, screenIdStr] = room.split(':');
         if (roomType === RoomType.SCREEN) {
           const screenId = parseInt(screenIdStr);
+
           const seats = await this.cache.getSeatAvailability(screenId);
+
           this.wsServer.broadcast(room, 'seatUpdate', { seats });
         }
       },
