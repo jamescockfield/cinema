@@ -1,32 +1,14 @@
 import 'reflect-metadata';
 import { createServer } from 'http';
-import { parse } from 'url';
 import next from 'next';
 import { container } from './container';
-import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityService';
-import { WebSocketServer } from './lib/websocket/WebSocketServer';
+import { ScreenAvailabilityCache } from './lib/availability/ScreenAvailabilityCache';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
-const handle = app.getRequestHandler();
 
 async function startServer() {
-  const server = createServer(async (req, res) => {
-    try {
-      const parsedUrl = parse(req.url!, true);
-      await handle(req, res, parsedUrl);
-    } catch (err) {
-      console.error('Error occurred handling request:', err);
-      res.statusCode = 500;
-      res.end('Internal server error');
-    }
-  });
-
-  container.registerInstance('httpServer', server);
-
-  const wsServer = container.resolve(WebSocketServer);
-  wsServer.initialize();
-  console.log('WebSocket server ready on http://localhost:3000/ws');
+  const server = createServer(app.getRequestHandler());
 
   const port = parseInt(process.env.PORT || '3000', 10);
   server.listen(port, () => {
@@ -37,24 +19,26 @@ async function startServer() {
 }
 
 const seedScreenAvailability = async () => {
-  const service = container.resolve(ScreenAvailabilityService);
+  const cache = container.resolve(ScreenAvailabilityCache);
 
-  await service.updateSeatAvailability(1, 1, true);
-  await service.updateSeatAvailability(1, 2, true);
-  await service.updateSeatAvailability(1, 3, true);
-  await service.updateSeatAvailability(1, 4, true);
-  await service.updateSeatAvailability(1, 5, true);
-  await service.updateSeatAvailability(1, 6, true);
-  await service.updateSeatAvailability(1, 7, false);
-  await service.updateSeatAvailability(1, 8, false);
-  await service.updateSeatAvailability(1, 9, true);
-  await service.updateSeatAvailability(1, 10, true);
-  await service.updateSeatAvailability(1, 11, true);
-  await service.updateSeatAvailability(1, 12, true);
-  await service.updateSeatAvailability(1, 13, true);
-  await service.updateSeatAvailability(1, 14, true);
-  await service.updateSeatAvailability(1, 15, true);
-  await service.updateSeatAvailability(1, 16, true);
+  await cache.setSeatAvailability(1, [
+    { id: 1, available: true },
+    { id: 2, available: true },
+    { id: 3, available: true },
+    { id: 4, available: true },
+    { id: 5, available: true },
+    { id: 6, available: true },
+    { id: 7, available: false },
+    { id: 8, available: false },
+    { id: 9, available: true },
+    { id: 10, available: true },
+    { id: 11, available: true },
+    { id: 12, available: true },
+    { id: 13, available: true },
+    { id: 14, available: true },
+    { id: 15, available: true },
+    { id: 16, available: true },
+  ]);
 };
 
 app.prepare().then(startServer);

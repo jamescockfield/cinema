@@ -1,50 +1,26 @@
 import { Server as SocketIOServer } from 'socket.io';
-import type { Server as HTTPServer } from 'http';
 import type { Socket } from 'socket.io';
-import { injectable, inject } from 'tsyringe';
-import { EventRegistration, SocketEventHandler } from './types';
+import { injectable, singleton } from 'tsyringe';
+import { EventRegistration, SocketEventHandler, SocketEvent } from './types';
 
 @injectable()
+@singleton()
 export class WebSocketServer {
-  private io: SocketIOServer | null = null;
-  private eventHandlers: Map<string, SocketEventHandler[]> = new Map();
+  private eventHandlers: Map<SocketEvent, SocketEventHandler[]> = new Map();
 
-  constructor(@inject('httpServer') private httpServer: HTTPServer) {}
-
-  public initialize(): void {
-    if (!this.io) {
-      this.io = new SocketIOServer(this.httpServer, {
-        path: '/ws',
-        addTrailingSlash: false,
-        cors: {
-          origin: '*',
-          methods: ['GET', 'POST'],
-        },
-        transports: ['websocket'],
-        allowEIO3: true,
-      });
-
-      this.setupSocketEvents();
-    }
-  }
-
-  public registerEventHandler(registration: EventRegistration): void {
-    const handlers = this.eventHandlers.get(registration.event) || [];
-    handlers.push(registration.handler);
-    this.eventHandlers.set(registration.event, handlers);
+  constructor(private io: SocketIOServer) {
+    this.setupSocketEvents();
   }
 
   private setupSocketEvents(): void {
-    if (!this.io) return;
-
     this.io.on('connection', (socket: Socket) => {
       console.log('Client connected');
 
-      socket.on('join', async (room: string) => {
+      socket.on(SocketEvent.JOIN, async (room: string) => {
         await socket.join(room);
         console.log(`Client joined room: ${room}`);
 
-        const handlers = this.eventHandlers.get('join') || [];
+        const handlers = this.eventHandlers.get(SocketEvent.JOIN) || [];
         for (const handler of handlers) {
           try {
             await handler(room, socket);
@@ -54,23 +30,28 @@ export class WebSocketServer {
         }
       });
 
-      socket.on('leave', (room: string) => {
+      socket.on(SocketEvent.LEAVE, (room: string) => {
         socket.leave(room);
         console.log(`Client left room: ${room}`);
       });
 
-      socket.on('disconnect', () => {
+      socket.on(SocketEvent.DISCONNECT, () => {
         console.log('Client disconnected');
       });
 
-      socket.on('error', (err: Error) => {
+      socket.on(SocketEvent.ERROR, (err: Error) => {
         console.error('Socket error:', err);
       });
     });
   }
 
+  public registerEventHandler(registration: EventRegistration): void {
+    const handlers = this.eventHandlers.get(registration.event) || [];
+    handlers.push(registration.handler);
+    this.eventHandlers.set(registration.event, handlers);
+  }
+
   public broadcast(room: string, event: string, data: any): void {
-    if (!this.io) return;
     this.io.to(room).emit(event, data);
   }
 }

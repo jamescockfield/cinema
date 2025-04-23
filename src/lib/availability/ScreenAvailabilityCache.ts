@@ -1,11 +1,12 @@
 import { Seat } from '../../types/types.d';
-import { RedisClient } from '../redis/RedisClient';
-import { injectable, inject } from 'tsyringe';
-import { RoomType } from '../websocket/RoomType';
+import { injectable, inject, singleton } from 'tsyringe';
+import { RoomType } from '../websocket/types';
+import { Redis } from 'ioredis';
 
 @injectable()
+@singleton()
 export class ScreenAvailabilityCache {
-  constructor(@inject(RedisClient) private readonly redisClient: RedisClient) {}
+  constructor(@inject(Redis) private readonly redis: Redis) {}
 
   private getKey(screenId: number): string {
     return `${RoomType.SCREEN}:${screenId}:availability`;
@@ -13,7 +14,7 @@ export class ScreenAvailabilityCache {
 
   async getSeatAvailability(screenId: number): Promise<Seat[]> {
     const key = this.getKey(screenId);
-    const cachedAvailability = await this.redisClient.get(key);
+    const cachedAvailability = await this.redis.get(key);
 
     if (cachedAvailability) {
       return JSON.parse(cachedAvailability);
@@ -23,6 +24,6 @@ export class ScreenAvailabilityCache {
 
   async setSeatAvailability(screenId: number, seats: Seat[]): Promise<void> {
     const key = this.getKey(screenId);
-    await this.redisClient.set(key, JSON.stringify(seats));
+    await this.redis.set(key, JSON.stringify(seats));
   }
 }

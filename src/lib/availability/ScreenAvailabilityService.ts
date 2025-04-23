@@ -1,14 +1,13 @@
-import { Seat } from '../../types/types.d';
-import { RedisClient } from '../redis/RedisClient';
-import { injectable, inject } from 'tsyringe';
+import { injectable, inject, singleton } from 'tsyringe';
 import { WebSocketServer } from '../websocket/WebSocketServer';
-import { RoomType } from '../websocket/RoomType';
+import { RoomType, SocketEvent } from '../websocket/types';
 import { ScreenAvailabilityCache } from './ScreenAvailabilityCache';
+import { Seat } from '@/types/types';
 
 @injectable()
+@singleton()
 export class ScreenAvailabilityService {
   constructor(
-    @inject(RedisClient) private readonly redisClient: RedisClient,
     @inject(WebSocketServer) private readonly wsServer: WebSocketServer,
     @inject(ScreenAvailabilityCache) private readonly cache: ScreenAvailabilityCache
   ) {
@@ -17,7 +16,7 @@ export class ScreenAvailabilityService {
 
   private registerSocketHandlers(): void {
     this.wsServer.registerEventHandler({
-      event: 'join',
+      event: SocketEvent.JOIN,
       handler: async (room: string) => {
         const [roomType, screenIdStr] = room.split(':');
         if (roomType === RoomType.SCREEN) {
@@ -43,7 +42,6 @@ export class ScreenAvailabilityService {
     }
     await this.cache.setSeatAvailability(screenId, availability);
 
-    // Broadcast update to all clients in the screen room
     this.wsServer.broadcast(`${RoomType.SCREEN}:${screenId}`, 'seatUpdate', { seats: availability });
   }
 }
