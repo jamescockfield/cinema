@@ -3,16 +3,27 @@ services:
     image: redis:7-alpine
     container_name: cinema-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  elasticmq:
+    image: softwaremill/elasticmq-native:1.4.3
+    container_name: cinema-elasticmq
+    ports:
+      - '9324:9324'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9324/health']
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
   redis_data:
-    driver: local 
+    driver: local

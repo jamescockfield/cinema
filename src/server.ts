@@ -5,23 +5,22 @@ import { container } from './container';
 import { ScreenAvailabilityCache } from './lib/availability/ScreenAvailabilityCache';
 import { getSocketIoServer } from './lib/websocket/getSocketIoServer';
 import { WebSocketServer } from './lib/websocket/WebSocketServer';
-import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityService';
-import { SocketServer } from './lib/websocket/types';
+import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityUpdater';
+import { QueueManager } from './lib/queue/QueueManager';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 
 async function startServer() {
-  const server = createServer(async (req, res) => {
-    if (!server.io) {
-      console.log('Initializing Socket.IO server for this instance');
-      server.io = await getSocketIoServer(server);
-      container.registerInstance(WebSocketServer, new WebSocketServer(server.io));
-      container.resolve(ScreenAvailabilityService); // register availability broadcasts over socket
-    }
+  const server = createServer(app.getRequestHandler());
 
-    return app.getRequestHandler()(req, res);
-  }) as SocketServer;
+  const io = await getSocketIoServer(server);
+  container.registerInstance(WebSocketServer, new WebSocketServer(io));
+  container.resolve(ScreenAvailabilityService); // register availability broadcasts over socket
+
+  // Start the booking message subscriber
+  const queueManager = container.resolve(QueueManager);
+  await queueManager.startPolling();
 
   const port = parseInt(process.env.PORT || '3000', 10);
   server.listen(port, () => {
