@@ -2,7 +2,7 @@ import { injectable, inject, singleton } from 'tsyringe';
 import { SQSClient, ReceiveMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
 import { ReserveBookingHandler } from './handlers/ReserveBookingHandler';
 import { QueueMessageType } from './types';
-
+import type { Config } from '../configuration';
 @injectable()
 @singleton()
 export class QueueManager {
@@ -10,10 +10,11 @@ export class QueueManager {
   private isPolling: boolean = false;
 
   constructor(
-    private readonly sqsClient: SQSClient,
-    @inject(ReserveBookingHandler) private readonly reserveBookingHandler: ReserveBookingHandler
+    @inject(SQSClient) private readonly sqsClient: SQSClient,
+    @inject(ReserveBookingHandler) private readonly reserveBookingHandler: ReserveBookingHandler,
+    @inject('Config') config: Config
   ) {
-    this.queueUrl = process.env.ELASTICMQ_QUEUE_URL || 'http://localhost:9324/queue/booking-queue';
+    this.queueUrl = `${config.elasticmq.endpoint}/queue/booking-queue`;
   }
 
   async startPolling(): Promise<void> {
@@ -38,9 +39,11 @@ export class QueueManager {
             const body = JSON.parse(message.Body);
             if (body.type === QueueMessageType.RESERVE_BOOKING) {
               await this.reserveBookingHandler.handleReserveBooking(parseInt(body.screenId), parseInt(body.seatId));
+            } else {
+              console.warn(`Unknown message type received: ${body.type}`);
+              continue;
             }
 
-            // Delete the message after processing
             await this.sqsClient.send(
               new DeleteMessageCommand({
                 QueueUrl: this.queueUrl,

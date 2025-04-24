@@ -1,30 +1,29 @@
 import 'reflect-metadata';
 import { createServer } from 'http';
 import next from 'next';
-import { container } from './container';
+import { container } from './lib/container';
 import { ScreenAvailabilityCache } from './lib/availability/ScreenAvailabilityCache';
 import { getSocketIoServer } from './lib/websocket/getSocketIoServer';
 import { WebSocketServer } from './lib/websocket/WebSocketServer';
-import { ScreenAvailabilityService } from './lib/availability/ScreenAvailabilityUpdater';
+import { ScreenAvailabilityUpdater } from './lib/availability/ScreenAvailabilityUpdater';
 import { QueueManager } from './lib/queue/QueueManager';
+import { config } from './lib/configuration';
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
+const app = next({ dev: config.isDevelopment });
 
 async function startServer() {
   const server = createServer(app.getRequestHandler());
 
   const io = await getSocketIoServer(server);
   container.registerInstance(WebSocketServer, new WebSocketServer(io));
-  container.resolve(ScreenAvailabilityService); // register availability broadcasts over socket
+  container.resolve(ScreenAvailabilityUpdater); // register availability broadcasts over socket
 
   // Start the booking message subscriber
   const queueManager = container.resolve(QueueManager);
   await queueManager.startPolling();
 
-  const port = parseInt(process.env.PORT || '3000', 10);
-  server.listen(port, () => {
-    console.log(`Server ready on http://localhost:${port}`);
+  server.listen(config.http.port, () => {
+    console.log(`Server ready on http://${config.http.host}:${config.http.port}`);
   });
 
   await seedScreenAvailability();
@@ -33,7 +32,7 @@ async function startServer() {
 const seedScreenAvailability = async () => {
   const cache = container.resolve(ScreenAvailabilityCache);
 
-  await cache.setSeatAvailability(1, [
+  await cache.setScreenAvailability(1, [
     { id: 1, available: true },
     { id: 2, available: true },
     { id: 3, available: true },

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { container } from '@/container';
+import { container } from '@/lib/container';
 import { ScreenAvailabilityCache } from '@/lib/availability/ScreenAvailabilityCache';
 import { ReserveBookingCommand } from '@/lib/queue/commands/ReserveBookingCommand';
 
