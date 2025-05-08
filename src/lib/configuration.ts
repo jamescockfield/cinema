@@ -14,7 +14,7 @@ export interface Config {
     host: string;
     port: number;
   };
-  elasticmq: {
+  queue: {
     endpoint: string;
     region: string;
   };
@@ -36,8 +36,8 @@ export const config: Config = {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
   },
-  elasticmq: {
-    endpoint: process.env.ELASTICMQ_ENDPOINT || 'http://localhost:9324',
+  queue: {
+    endpoint: process.env.QUEUE_ENDPOINT || 'http://localhost:9324',
     region: process.env.AWS_REGION || 'us-east-1',
   },
 };

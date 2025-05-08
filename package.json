@@ -12,7 +12,9 @@
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.796.0",
     "@socket.io/redis-adapter": "^8.3.0",
+    "@types/amqplib": "^0.10.4",
     "@types/socket.io": "^3.0.1",
+    "amqp-connection-manager": "^4.1.14",
     "async-mqtt": "^2.6.3",
     "ioredis": "^5.6.0",
     "mqtt": "^5.10.4",

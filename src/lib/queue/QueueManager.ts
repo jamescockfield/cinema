@@ -1,8 +1,9 @@
 import { injectable, inject, singleton } from 'tsyringe';
-import { SQSClient, ReceiveMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
 import { ReserveBookingHandler } from './handlers/ReserveBookingHandler';
 import { QueueMessageType } from './types';
 import type { Config } from '../configuration';
+import type { QueueClient } from './clients/QueueClient';
+
 @injectable()
 @singleton()
 export class QueueManager {
@@ -10,11 +11,11 @@ export class QueueManager {
   private isPolling: boolean = false;
 
   constructor(
-    @inject(SQSClient) private readonly sqsClient: SQSClient,
+    @inject('QueueClient') private readonly queueClient: QueueClient,
     @inject(ReserveBookingHandler) private readonly reserveBookingHandler: ReserveBookingHandler,
     @inject('Config') config: Config
   ) {
-    this.queueUrl = `${config.elasticmq.endpoint}/queue/booking-queue`;
+    this.queueUrl = `${config.queue.endpoint}/queue/booking-queue`;
   }
 
   async startPolling(): Promise<void> {
@@ -23,33 +24,23 @@ export class QueueManager {
 
     while (this.isPolling) {
       try {
-        const command = new ReceiveMessageCommand({
-          QueueUrl: this.queueUrl,
-          MaxNumberOfMessages: 10,
-          WaitTimeSeconds: 20,
-        });
-
-        const response = await this.sqsClient.send(command);
-        const messages = response.Messages || [];
+        const messages = await this.queueClient.receiveMessages(this.queueUrl);
 
         for (const message of messages) {
-          if (!message.Body || !message.ReceiptHandle) continue;
+          if (!message.body || !message.receiptHandle) continue;
 
           try {
-            const body = JSON.parse(message.Body);
-            if (body.type === QueueMessageType.RESERVE_BOOKING) {
-              await this.reserveBookingHandler.handleReserveBooking(parseInt(body.screenId), parseInt(body.seatId));
+            if (message.type === QueueMessageType.RESERVE_BOOKING) {
+              await this.reserveBookingHandler.handleReserveBooking(
+                parseInt(message.body.screenId),
+                parseInt(message.body.seatId)
+              );
             } else {
-              console.warn(`Unknown message type received: ${body.type}`);
+              console.warn(`Unknown message type received: ${message.type}`);
               continue;
             }
 
-            await this.sqsClient.send(
-              new DeleteMessageCommand({
-                QueueUrl: this.queueUrl,
-                ReceiptHandle: message.ReceiptHandle,
-              })
-            );
+            await this.queueClient.deleteMessage(this.queueUrl, message.receiptHandle);
           } catch (error) {
             console.error('Error processing message:', error);
           }
