@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from '@aws-sdk/client-sqs';
-import { QueueClient, QueueMessage } from './clients/QueueClient';
+import { QueueClient, QueueMessage } from './QueueClient';
 
 @injectable()
 export class SQSQueueClient implements QueueClient {

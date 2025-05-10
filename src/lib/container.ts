@@ -21,11 +21,11 @@ appContainer.registerInstance(
 
 let queueClient: QueueClient;
 if (config.isDevelopment) {
-  queueClient = new RabbitMQClient(config.queue.endpoint);
+  queueClient = new RabbitMQClient(config.queue.rabbitmq.url);
 } else {
   const sqsClient = new SQSClient({
-    endpoint: config.queue.endpoint,
-    region: config.queue.region,
+    endpoint: config.queue.sqs.endpoint,
+    region: config.queue.sqs.region,
     credentials: {
       accessKeyId: 'dummy',
       secretAccessKey: 'dummy',

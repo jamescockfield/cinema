@@ -37,7 +37,7 @@ export const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379'),
   },
   queue: {
-    endpoint: process.env.QUEUE_ENDPOINT || 'http://localhost:9324',
+    endpoint: process.env.QUEUE_ENDPOINT || 'amqp://guest:guest@localhost:5672',
     region: process.env.AWS_REGION || 'us-east-1',
   },
 };
