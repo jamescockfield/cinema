@@ -1,30 +1,31 @@
 import { injectable, inject, singleton } from 'tsyringe';
 import { ReserveBookingHandler } from './handlers/ReserveBookingHandler';
 import { QueueMessageType } from './types';
-import type { Config } from '../configuration';
 import type { QueueClient } from './clients/QueueClient';
 
 @injectable()
 @singleton()
 export class QueueManager {
-  private readonly queueUrl: string;
+  public static readonly BOOKING_QUEUE_NAME = 'booking-queue';
   private isPolling: boolean = false;
+
+  // TODO: consider push-based with RabbitMQ and SNS
 
   constructor(
     @inject('QueueClient') private readonly queueClient: QueueClient,
     @inject(ReserveBookingHandler) private readonly reserveBookingHandler: ReserveBookingHandler,
-    @inject('Config') config: Config
-  ) {
-    this.queueUrl = `${config.queue.endpoint}/queue/booking-queue`;
-  }
+  ) {}
 
   async startPolling(): Promise<void> {
     if (this.isPolling) return;
+
+    await this.queueClient.createQueue(QueueManager.BOOKING_QUEUE_NAME);
+
     this.isPolling = true;
 
     while (this.isPolling) {
       try {
-        const messages = await this.queueClient.receiveMessages(this.queueUrl);
+        const messages = await this.queueClient.receiveMessages(QueueManager.BOOKING_QUEUE_NAME);
 
         for (const message of messages) {
           if (!message.body || !message.receiptHandle) continue;
@@ -40,7 +41,7 @@ export class QueueManager {
               continue;
             }
 
-            await this.queueClient.deleteMessage(this.queueUrl, message.receiptHandle);
+            await this.queueClient.deleteMessage(QueueManager.BOOKING_QUEUE_NAME, message.receiptHandle);
           } catch (error) {
             console.error('Error processing message:', error);
           }

@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 export interface Config {
   isDevelopment: boolean;
   aws: {
@@ -15,13 +17,21 @@ export interface Config {
     port: number;
   };
   queue: {
-    endpoint: string;
-    region: string;
+    rabbitmq: {
+      url: string;
+    };
+    sqs: {
+      endpoint: string;
+      region: string;
+    };
+    elasticmq: {
+      url: string;
+    };
   };
 }
 
 export const config: Config = {
-  isDevelopment: process.env.NODE_ENV === 'development',
+  isDevelopment: process.env.ENVIRONMENT === 'development',
   aws: {
     region: process.env.AWS_REGION || 'us-east-1',
   },
@@ -37,7 +47,15 @@ export const config: Config = {
     port: parseInt(process.env.REDIS_PORT || '6379'),
   },
   queue: {
-    endpoint: process.env.QUEUE_ENDPOINT || 'amqp://guest:guest@localhost:5672',
-    region: process.env.AWS_REGION || 'us-east-1',
+    rabbitmq: {
+      url: process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672',
+    },
+    sqs: {
+      endpoint: process.env.SQS_ENDPOINT || 'http://localhost:4566',
+      region: process.env.AWS_REGION || 'us-east-1',
+    },
+    elasticmq: {
+      url: process.env.ELASTICMQ_URL || 'http://localhost:9324',
+    },
   },
 };

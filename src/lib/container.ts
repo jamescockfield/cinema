@@ -5,7 +5,7 @@ import { SQSClient } from '@aws-sdk/client-sqs';
 import { config } from './configuration';
 import { QueueClient } from './queue/clients/QueueClient';
 import { SQSQueueClient } from './queue/clients/SQSQueueClient';
-import { RabbitMQClient } from './queue/clients/RabbitMQClient';
+import { ElasticMQClient } from './queue/clients/ElasticMQClient';
 
 const appContainer = container.createChildContainer();
 
@@ -21,7 +21,7 @@ appContainer.registerInstance(
 
 let queueClient: QueueClient;
 if (config.isDevelopment) {
-  queueClient = new RabbitMQClient(config.queue.rabbitmq.url);
+  queueClient = new ElasticMQClient(config);
 } else {
   const sqsClient = new SQSClient({
     endpoint: config.queue.sqs.endpoint,
@@ -31,7 +31,7 @@ if (config.isDevelopment) {
       secretAccessKey: 'dummy',
     },
   });
-  queueClient = new SQSQueueClient(sqsClient);
+  queueClient = new SQSQueueClient(config, sqsClient);
 }
 
 appContainer.registerInstance<QueueClient>('QueueClient', queueClient);

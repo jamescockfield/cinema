@@ -5,14 +5,14 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "next build",
-    "start": "NODE_ENV=production tsx src/server.ts",
+    "start": "tsx src/server.ts",
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss}\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:integration": "jest --config jest.integration.config.js",
-    "test:unit": "jest --config jest.unit.config.js"
+    "test:integration": "jest test/integration --setupFilesAfterEnv=./test/integration/jest.setup.ts",
+    "test:unit": "jest test/unit"
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.796.0",
@@ -21,6 +21,7 @@
     "@types/socket.io": "^3.0.1",
     "amqp-connection-manager": "^4.1.14",
     "async-mqtt": "^2.6.3",
+    "dotenv": "^16.5.0",
     "ioredis": "^5.6.0",
     "mqtt": "^5.10.4",
     "next": "15.2.4",
@@ -49,8 +50,5 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5"
-  },
-  "jest": {
-    "setupFilesAfterEnv": ["<rootDir>/test/jest.setup.ts"]
   }
 }

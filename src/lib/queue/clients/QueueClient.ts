@@ -1,11 +1,10 @@
-export interface QueueMessage {
-  type: string;
-  body: any;
-  receiptHandle?: string;
-}
+import { QueueMessage } from '../types';
 
 export interface QueueClient {
-  sendMessage(queueUrl: string, message: any): Promise<void>;
-  receiveMessages(queueUrl: string, maxMessages?: number, waitTimeSeconds?: number): Promise<QueueMessage[]>;
-  deleteMessage(queueUrl: string, receiptHandle: string): Promise<void>;
+  waitForReady(): Promise<void>;
+  createQueue(queueName: string): Promise<void>;
+  sendMessage(queueName: string, message: QueueMessage): Promise<void>;
+  receiveMessages(queueName: string): Promise<QueueMessage[]>;
+  deleteMessage(queueName: string, receiptHandle: string): Promise<void>;
+  close(): Promise<void>;
 } 

@@ -8,10 +8,12 @@ import { WebSocketServer } from './lib/websocket/WebSocketServer';
 import { ScreenAvailabilityUpdater } from './lib/availability/ScreenAvailabilityUpdater';
 import { QueueManager } from './lib/queue/QueueManager';
 import { config } from './lib/configuration';
+import { QueueClient } from './lib/queue/clients/QueueClient';
 
 const app = next({ dev: config.isDevelopment });
 
 async function startServer() {
+  console.log('Starting server...');
   const server = createServer(app.getRequestHandler());
 
   const io = await getSocketIoServer(server);
@@ -19,8 +21,11 @@ async function startServer() {
   container.resolve(ScreenAvailabilityUpdater); // register availability broadcasts over socket
 
   // Start the booking message subscriber
+  const queueClient = container.resolve<QueueClient>('QueueClient');
+  await queueClient.waitForReady();
+
   const queueManager = container.resolve(QueueManager);
-  await queueManager.startPolling();
+  queueManager.startPolling();
 
   server.listen(config.http.port, () => {
     console.log(`Server ready on http://${config.http.host}:${config.http.port}`);

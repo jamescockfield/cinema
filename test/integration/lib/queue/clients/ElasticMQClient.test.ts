@@ -1,27 +1,36 @@
 import 'reflect-metadata';
-import { RabbitMQClient } from '@/lib/queue/clients/RabbitMQClient';
+import { ElasticMQClient } from '@/lib/queue/clients/ElasticMQClient';
 import { QueueMessageType } from '@/lib/queue/types';
 import { config } from '@/lib/configuration';
-import { container } from 'tsyringe';
 
-describe.skip('RabbitMQClient', () => {
-  let queueClient: RabbitMQClient;
+describe('ElasticMQClient', () => {
+  let queueClient: ElasticMQClient;
   const testQueueName = 'test-queue';
 
   beforeAll(async () => {
-    container.registerInstance('Config', config);
-    queueClient = container.resolve(RabbitMQClient);
+    queueClient = new ElasticMQClient(config);
     await queueClient.waitForReady();
+    await queueClient.createQueue(testQueueName);
   });
 
   afterAll(async () => {
     await queueClient.close();
   });
 
+  afterEach(async () => {
+    // Clean up all messages by receiving and deleting them
+    const messages = await queueClient.receiveMessages(testQueueName);
+    await Promise.all(
+      messages.map(msg => 
+        msg.receiptHandle ? queueClient.deleteMessage(testQueueName, msg.receiptHandle) : Promise.resolve()
+      )
+    );
+  });
+
   describe('connection', () => {
-    it('should successfully connect to RabbitMQ', async () => {
+    it('should successfully connect to ElasticMQ', async () => {
       expect(queueClient).toBeDefined();
-      expect(queueClient instanceof RabbitMQClient).toBe(true);
+      expect(queueClient instanceof ElasticMQClient).toBe(true);
     });
   });
 
@@ -32,34 +41,22 @@ describe.skip('RabbitMQClient', () => {
         type: QueueMessageType.RESERVE_BOOKING,
         body: {
           screenId: 1,
-          seatId: 1,
-          timestamp: new Date().toISOString()
+          seatId: 1
         }
       };
 
       // Act
       await queueClient.sendMessage(testQueueName, testMessage);
-      const messages = await queueClient.receiveMessages(testQueueName, 1);
+      const messages = await queueClient.receiveMessages(testQueueName);
 
       // Assert
       expect(messages.length).toBeGreaterThan(0);
       expect(messages[0].receiptHandle).toBeDefined();
-      expect(messages[0].body).toMatchObject({
-        type: QueueMessageType.RESERVE_BOOKING,
-        body: expect.objectContaining({
-          screenId: 1,
-          seatId: 1
-        })
-      });
-
-      // Cleanup
-      if (messages[0].receiptHandle) {
-        await queueClient.deleteMessage(testQueueName, messages[0].receiptHandle);
-      }
+      expect(messages[0]).toMatchObject(testMessage);
     });
 
     it('should handle receiving messages from an empty queue', async () => {
-      const messages = await queueClient.receiveMessages(testQueueName, 1);
+      const messages = await queueClient.receiveMessages(testQueueName);
       expect(messages).toHaveLength(0);
     });
   });

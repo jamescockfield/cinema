@@ -1,18 +1,17 @@
 import { QueueMessageType } from '../types';
 import { inject, injectable } from 'tsyringe';
-import type { Config } from '../../configuration';
 import type { QueueClient } from '../clients/QueueClient';
+import { QueueManager } from '../QueueManager';
 
 @injectable()
 export class ReserveBookingCommand {
   constructor(
-    @inject('QueueClient') private readonly queueClient: QueueClient,
-    @inject('Config') private readonly config: Config
+    @inject('QueueClient') private readonly queueClient: QueueClient
   ) {}
 
   async execute(screenId: string, seatId: string): Promise<void> {
     await this.queueClient.sendMessage(
-      `${this.config.queue.endpoint}/queue/booking-queue`,
+      QueueManager.BOOKING_QUEUE_NAME,
       {
         type: QueueMessageType.RESERVE_BOOKING,
         screenId,
