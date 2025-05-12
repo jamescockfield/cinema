@@ -54,7 +54,12 @@ export class ElasticMQClient implements QueueClient {
 
   async sendMessage(queueName: string, message: QueueMessage): Promise<void> {
     const command = new SendMessageCommand(this.getQueueUrl(queueName), message);
-    await this.client.send(command);
+    try {
+      await this.client.send(command);
+    } catch (error: any) {
+      console.error('Error sending message to queue. Response:', queueName, error.$response);
+      throw error;
+    }
   }
 
   async receiveMessages(queueName: string): Promise<QueueMessage[]> {

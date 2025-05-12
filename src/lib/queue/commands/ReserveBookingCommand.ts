@@ -14,8 +14,10 @@ export class ReserveBookingCommand {
       QueueManager.BOOKING_QUEUE_NAME,
       {
         type: QueueMessageType.RESERVE_BOOKING,
-        screenId,
-        seatId,
+        body: {
+          screenId,
+          seatId,
+        },
       }
     );
   }
