@@ -75,8 +75,7 @@ export class ElasticMQClient implements QueueClient {
 
   async deleteMessage(queueName: string, receiptHandle: string): Promise<void> {
     const command = new DeleteMessageCommand(this.getQueueUrl(queueName), receiptHandle);
-    const response = await this.client.send(command);
-    console.log('Message deleted from queue:', queueName, response);
+    await this.client.send(command);
   }
 
   async close(): Promise<void> {

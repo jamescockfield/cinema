@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { SeatModal } from './SeatModal';
+import { BookingFlowModal } from './booking-flow/BookingFlowModal';
 import { bookSeat } from '@/fetch/bookSeat';
 
 interface SeatProps {
@@ -36,7 +36,7 @@ export const Seat = ({ screenId, seatId, available }: SeatProps) => {
       >
         {seatId}
       </div>
-      <SeatModal
+      <BookingFlowModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         seatId={seatId}
