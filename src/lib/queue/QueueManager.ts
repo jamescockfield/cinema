@@ -1,4 +1,5 @@
 import { injectable, inject, singleton } from 'tsyringe';
+import { QueueClientToken } from '../container';
 import { ReserveBookingHandler } from './handlers/ReserveBookingHandler';
 import { QueueMessageType } from './types';
 import type { QueueClient } from './clients/QueueClient';
@@ -12,7 +13,7 @@ export class QueueManager {
   // TODO: consider push-based with RabbitMQ and SNS
 
   constructor(
-    @inject('QueueClient') private readonly queueClient: QueueClient,
+    @inject(QueueClientToken) private readonly queueClient: QueueClient,
     @inject(ReserveBookingHandler) private readonly reserveBookingHandler: ReserveBookingHandler,
   ) {}
 

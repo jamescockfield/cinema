@@ -1,14 +1,16 @@
 import 'reflect-metadata';
 import { ElasticMQClient } from '@/lib/queue/clients/ElasticMQClient';
 import { QueueMessageType } from '@/lib/queue/types';
-import { config } from '@/lib/configuration';
+import { Config } from '@/lib/configuration';
+import { container } from 'tsyringe';
 
 describe('ElasticMQClient', () => {
   let queueClient: ElasticMQClient;
   const testQueueName = 'test-queue';
 
   beforeAll(async () => {
-    queueClient = new ElasticMQClient(config);
+    container.registerInstance(Config, new Config());
+    queueClient = container.resolve(ElasticMQClient);
     await queueClient.waitForReady();
     await queueClient.createQueue(testQueueName);
   });

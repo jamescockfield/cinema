@@ -1,4 +1,4 @@
-import { QueueMessage } from '../types';
+import { QueueMessage } from '@/lib/queue/types';
 
 export interface QueueClient {
   waitForReady(): Promise<void>;

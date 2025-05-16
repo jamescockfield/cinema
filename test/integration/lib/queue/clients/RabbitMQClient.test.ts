@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { RabbitMQClient } from '@/lib/queue/clients/RabbitMQClient';
 import { QueueMessageType } from '@/lib/queue/types';
-import { config } from '@/lib/configuration';
+import { Config } from '@/lib/configuration';
 import { container } from 'tsyringe';
 
 describe.skip('RabbitMQClient', () => {
@@ -9,7 +9,7 @@ describe.skip('RabbitMQClient', () => {
   const testQueueName = 'test-queue';
 
   beforeAll(async () => {
-    container.registerInstance('Config', config);
+    container.registerInstance(Config, new Config());
     queueClient = container.resolve(RabbitMQClient);
     await queueClient.waitForReady();
   });

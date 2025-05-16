@@ -37,6 +37,7 @@
     "@eslint/eslintrc": "^3",
     "@jest/globals": "^29.7.0",
     "@tailwindcss/postcss": "^4",
+    "@types/aws-lambda": "^8.10.149",
     "@types/jest": "^29.5.12",
     "@types/node": "^20",
     "@types/react": "^19",

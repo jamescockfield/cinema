@@ -2,8 +2,8 @@ import { injectable, inject } from 'tsyringe';
 import * as amqp from 'amqp-connection-manager';
 import { Message } from 'amqplib';
 import { QueueClient } from './QueueClient';
-import { QueueMessage } from '../types';
-import type { Config } from '../../configuration';
+import { QueueMessage } from '@/lib/queue/types';
+import { Config } from '@/lib/configuration';
 
 @injectable()
 export class RabbitMQClient implements QueueClient {
@@ -12,7 +12,7 @@ export class RabbitMQClient implements QueueClient {
   private isReady: boolean = false;
 
   constructor(
-    @inject('Config') private readonly config: Config
+    @inject(Config) private readonly config: Config
   ) {
     console.log(config.queue.rabbitmq.url);
     this.connectionManager = amqp.connect([config.queue.rabbitmq.url]);

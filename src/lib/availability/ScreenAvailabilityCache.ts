@@ -1,6 +1,6 @@
-import { Seat } from '../../types/types.d';
+import { Seat } from '@/types/types';
 import { injectable, inject, singleton } from 'tsyringe';
-import { RoomType } from '../websocket/types';
+import { RoomType } from '@/lib/websocket/types';
 import { Redis } from 'ioredis';
 
 @injectable()

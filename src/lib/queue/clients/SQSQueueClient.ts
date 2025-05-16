@@ -1,22 +1,22 @@
 import { injectable, inject } from 'tsyringe';
 import { SQSClient, Message } from '@aws-sdk/client-sqs';
 import { QueueClient } from './QueueClient';
-import type { Config } from '../../configuration';
+import { Config } from '@/lib/configuration';
 import {
   SendMessageCommand,
   ReceiveMessageCommand,
   DeleteMessageCommand,
   CreateQueueCommand,
   ListQueuesCommand
-} from '../commands/sqs';
-import { QueueMessage, QueueMessageType } from '../types';
+} from '@/lib/queue/commands/sqs';
+import { QueueMessage, QueueMessageType } from '@/lib/queue/types';
 
 @injectable()
 export class SQSQueueClient implements QueueClient {
   private isReady: boolean = false;
 
   constructor(
-    @inject('Config') private readonly config: Config,
+    @inject(Config) private readonly config: Config,
     private readonly sqsClient: SQSClient
   ) {}
 

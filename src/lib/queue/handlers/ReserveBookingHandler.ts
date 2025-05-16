@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { ScreenAvailabilityUpdater } from '../../availability/ScreenAvailabilityUpdater';
+import { ScreenAvailabilityUpdater } from '@/lib/availability/ScreenAvailabilityUpdater';
 
 @injectable()
 export class ReserveBookingHandler {

@@ -1,12 +1,13 @@
-import { QueueMessageType } from '../types';
+import { QueueMessageType } from '@/lib/queue/types';
 import { inject, injectable } from 'tsyringe';
-import type { QueueClient } from '../clients/QueueClient';
-import { QueueManager } from '../QueueManager';
+import { QueueClientToken } from '@/lib/container';
+import type { QueueClient } from '@/lib/queue/clients/QueueClient';
+import { QueueManager } from '@/lib/queue/QueueManager';
 
 @injectable()
 export class ReserveBookingCommand {
   constructor(
-    @inject('QueueClient') private readonly queueClient: QueueClient
+    @inject(QueueClientToken) private readonly queueClient: QueueClient
   ) {}
 
   async execute(screenId: string, seatId: string): Promise<void> {

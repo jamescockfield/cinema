@@ -1,6 +1,6 @@
 'use client';
 
-import { Modal } from '../Modal';
+import { Modal } from '@/components/Modal';
 import { ReserveBooking } from './ReserveBooking';
 
 export enum BookingStage {

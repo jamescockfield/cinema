@@ -1,6 +1,6 @@
 import { injectable, inject, singleton } from 'tsyringe';
-import { WebSocketServer } from '../websocket/WebSocketServer';
-import { RoomType, SocketEvent } from '../websocket/types';
+import { WebSocketServer } from '@/lib/websocket/WebSocketServer';
+import { RoomType, SocketEvent } from '@/lib/websocket/types';
 import { ScreenAvailabilityCache } from './ScreenAvailabilityCache';
 
 @injectable()

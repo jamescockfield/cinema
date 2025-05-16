@@ -1,15 +1,16 @@
 import 'reflect-metadata';
 import { createServer } from 'http';
 import next from 'next';
-import { container } from './lib/container';
+import { container, QueueClientToken } from './lib/container';
 import { ScreenAvailabilityCache } from './lib/availability/ScreenAvailabilityCache';
 import { getSocketIoServer } from './lib/websocket/getSocketIoServer';
 import { WebSocketServer } from './lib/websocket/WebSocketServer';
 import { ScreenAvailabilityUpdater } from './lib/availability/ScreenAvailabilityUpdater';
 import { QueueManager } from './lib/queue/QueueManager';
-import { config } from './lib/configuration';
+import { Config } from './lib/configuration';
 import { QueueClient } from './lib/queue/clients/QueueClient';
 
+const config = container.resolve(Config);
 const app = next({ dev: config.isDevelopment });
 
 async function startServer() {
@@ -21,7 +22,7 @@ async function startServer() {
   container.resolve(ScreenAvailabilityUpdater); // register availability broadcasts over socket
 
   // Start the booking message subscriber
-  const queueClient = container.resolve<QueueClient>('QueueClient');
+  const queueClient = container.resolve<QueueClient>(QueueClientToken);
   await queueClient.waitForReady();
 
   const queueManager = container.resolve(QueueManager);

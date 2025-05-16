@@ -5,7 +5,7 @@ import {
   CreateQueueCommand as AWSCreateQueueCommand,
   ListQueuesCommand as AWSListQueuesCommand,
 } from '@aws-sdk/client-sqs';
-import { QueueMessage } from '../types';
+import { QueueMessage } from '@/lib/queue/types';
 
 // Default configuration values
 const DEFAULT_MAX_MESSAGES = 10;
