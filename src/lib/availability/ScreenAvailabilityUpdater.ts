@@ -1,39 +1,29 @@
 import { injectable, inject, singleton } from 'tsyringe';
-import { WebSocketServer } from '@/lib/websocket/WebSocketServer';
-import { RoomType, SocketEvent } from '@/lib/websocket/types';
+import { RoomType } from '@/lib/websocket/types';
 import { ScreenAvailabilityCache } from './ScreenAvailabilityCache';
+import { ConnectionRepository } from '@/aws/repositories/ConnectionRepository';
+import { ApiGatewayClient } from '@/aws/websocket/ApiGatewayClient';
 
 @injectable()
 @singleton()
 export class ScreenAvailabilityUpdater {
   constructor(
-    @inject(WebSocketServer) private readonly wsServer: WebSocketServer,
+    @inject(ConnectionRepository) private readonly connectionRepository: ConnectionRepository,
+    @inject(ApiGatewayClient) private readonly apiGateway: ApiGatewayClient,
     @inject(ScreenAvailabilityCache) private readonly cache: ScreenAvailabilityCache
-  ) {
-    this.registerSocketHandlers();
-  }
-
-  private registerSocketHandlers(): void {
-    this.wsServer.registerEventHandler({
-      event: SocketEvent.JOIN,
-      handler: async (room: string) => {
-        const [roomType, screenIdStr] = room.split(':');
-        if (roomType === RoomType.SCREEN) {
-          const screenId = parseInt(screenIdStr);
-
-          const seats = await this.cache.getScreenAvailability(screenId);
-
-          this.wsServer.broadcast(room, 'seatUpdate', { seats });
-        }
-      },
-    });
-  }
+  ) {}
 
   async updateSeatAvailability(screenId: number, seatId: number, available: boolean): Promise<void> {
     await this.cache.setSeatAvailability(screenId, seatId, available);
 
     const seats = await this.cache.getScreenAvailability(screenId);
+    const connectionIds = await this.connectionRepository.getAllConnections();
 
-    this.wsServer.broadcast(`${RoomType.SCREEN}:${screenId}`, 'seatUpdate', { seats });
+    // Broadcast to all connections
+    await this.apiGateway.broadcast(
+      connectionIds,
+      'seatUpdate',
+      { seats, screenId }
+    );
   }
 }

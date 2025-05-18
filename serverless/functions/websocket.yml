@@ -1,0 +1,39 @@
+functions:
+  webSocketConnect:
+    handler: src/aws/websocket/connect.handler
+    events:
+      - websocket:
+          route: $connect
+    environment:
+      CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+      WEBSOCKET_API_ENDPOINT: !Sub '${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+          - dynamodb:Scan
+        Resource: !GetAtt WebSocketConnectionsTable.Arn
+      - Effect: Allow
+        Action:
+          - execute-api:ManageConnections
+        Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/*/*'
+
+  webSocketDisconnect:
+    handler: src/aws/websocket/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+    environment:
+      CONNECTIONS_TABLE: !Ref WebSocketConnectionsTable
+      WEBSOCKET_API_ENDPOINT: !Sub '${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/${self:provider.stage}'
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+          - dynamodb:Scan
+        Resource: !GetAtt WebSocketConnectionsTable.Arn
+      - Effect: Allow
+        Action:
+          - execute-api:ManageConnections
+        Resource: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*/*/*' 

@@ -1,56 +1,95 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
 
 interface WebSocketContextType {
-  socket: Socket | null;
   isConnected: boolean;
+  subscribe: (screenId: number, callback: (seats: Seat[]) => void) => () => void;
+}
+
+interface Seat {
+  id: number;
+  available: boolean;
 }
 
 const WebSocketContext = createContext<WebSocketContextType>({
-  socket: null,
   isConnected: false,
+  subscribe: () => () => {},
 });
 
 export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [subscribers] = useState<Map<number, Set<(seats: Seat[]) => void>>>(new Map());
 
   useEffect(() => {
-    const socketInstance = io({
-      path: '/ws',
-      addTrailingSlash: false,
-      transports: ['websocket'],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    // Get the WebSocket URL from environment or use a default for local development
+    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:4001';
+    const socket = new WebSocket(wsUrl);
 
-    setIsConnected(socketInstance.connected);
+    socket.onopen = () => {
+      console.log('WebSocket Connected');
+      setIsConnected(true);
+    };
 
-    socketInstance.on('connect', () => {
-      setIsConnected(socketInstance.connected);
-      console.log('Socket.IO Connected');
-    });
+    socket.onclose = () => {
+      console.log('WebSocket Disconnected');
+      setIsConnected(false);
+      // Attempt to reconnect after a delay
+      setTimeout(() => {
+        setWs(null);
+      }, 5000);
+    };
 
-    socketInstance.on('disconnect', () => {
-      setIsConnected(socketInstance.connected);
-      console.log('Socket.IO Disconnected');
-    });
+    socket.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+      setIsConnected(false);
+    };
 
-    socketInstance.on('connect_error', (error) => {
-      setIsConnected(socketInstance.connected);
-      console.error('Socket.IO Connection Error:', error);
-    });
+    socket.onmessage = (event) => {
+      try {
+        const { event: eventType, data } = JSON.parse(event.data);
+        if (eventType === 'seatUpdate' && data.screenId && data.seats) {
+          const callbacks = subscribers.get(data.screenId);
+          if (callbacks) {
+            callbacks.forEach(callback => callback(data.seats));
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
 
-    setSocket(socketInstance);
+    setWs(socket);
 
     return () => {
-      socketInstance.disconnect();
+      socket.close();
     };
   }, []);
 
-  return <WebSocketContext.Provider value={{ socket, isConnected }}>{children}</WebSocketContext.Provider>;
+  const subscribe = (screenId: number, callback: (seats: Seat[]) => void) => {
+    if (!subscribers.has(screenId)) {
+      subscribers.set(screenId, new Set());
+    }
+    subscribers.get(screenId)!.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      const callbacks = subscribers.get(screenId);
+      if (callbacks) {
+        callbacks.delete(callback);
+        if (callbacks.size === 0) {
+          subscribers.delete(screenId);
+        }
+      }
+    };
+  };
+
+  return (
+    <WebSocketContext.Provider value={{ isConnected, subscribe }}>
+      {children}
+    </WebSocketContext.Provider>
+  );
 };
 
 export const useWebSocket = () => useContext(WebSocketContext);

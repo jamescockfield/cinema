@@ -1,0 +1,9 @@
+functions:
+  reserveBooking:
+    handler: src/aws/sqs/reserve-booking.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [ReserveBookingQueue, Arn]
+          batchSize: 10
+          maximumBatchingWindow: 30 

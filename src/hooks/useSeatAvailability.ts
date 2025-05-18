@@ -4,29 +4,22 @@ import { useState, useEffect } from 'react';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { Seat } from '@/types/types';
 
-export const useSeatAvailability = () => {
+export const useSeatAvailability = (screenId: number = 1) => {
   const [seats, setSeats] = useState<Seat[]>([]);
-  const { socket, isConnected } = useWebSocket();
-  const [isJoined, setIsJoined] = useState(false);
+  const { isConnected, subscribe } = useWebSocket();
 
   useEffect(() => {
-    if (!socket || !isConnected) return;
+    if (!isConnected) return;
 
-    const handleSeatUpdate = (data: { seats: Seat[] }) => {
-      setSeats(data.seats);
-    };
-
-    socket.emit('join', 'screen:1');
-    socket.on('seatUpdate', handleSeatUpdate);
-    setIsJoined(true);
+    // Subscribe to seat updates for this screen
+    const unsubscribe = subscribe(screenId, (updatedSeats) => {
+      setSeats(updatedSeats);
+    });
 
     return () => {
-      if (isJoined) {
-        socket.emit('leave', 'screen:1');
-        socket.off('seatUpdate', handleSeatUpdate);
-      }
+      unsubscribe();
     };
-  }, [socket, isConnected]);
+  }, [isConnected, subscribe, screenId]);
 
   return seats;
 };

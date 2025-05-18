@@ -1,6 +1,6 @@
 import { SQSEvent, SQSRecord, Context } from 'aws-lambda';
 import { container } from '@/lib/container';
-import { ReserveBookingHandler } from './ReserveBookingHandler';
+import { ReserveBookingHandler } from '../../lib/queue/handlers/ReserveBookingHandler';
 
 export const handler = async (event: SQSEvent, context: Context): Promise<void> => {
   const reserveBookingHandler = container.resolve(ReserveBookingHandler);
