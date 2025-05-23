@@ -2,13 +2,13 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { ConnectionRepository } from '../repositories/ConnectionRepository';
 
 const CONNECTIONS_TABLE = process.env.CONNECTIONS_TABLE!;
-const connectionRepository = new ConnectionRepository(CONNECTIONS_TABLE);
+// const connectionRepository = new ConnectionRepository(CONNECTIONS_TABLE);
 
 export const handler: APIGatewayProxyHandler = async (event) => {
   const connectionId = event.requestContext.connectionId!;
   
   try {
-    await connectionRepository.removeConnection(connectionId);
+    // await connectionRepository.removeConnection(connectionId);
 
     return {
       statusCode: 200,

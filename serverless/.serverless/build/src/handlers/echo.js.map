@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../src/handlers/echo.ts"],
+  "sourcesContent": ["import { APIGatewayProxyWebsocketEventV2 } from 'aws-lambda';\r\n\r\nexport const main = async (event: APIGatewayProxyWebsocketEventV2) => {\r\n  console.log('Echo handler called with event:', JSON.stringify(event, null, 2));\r\n  \r\n  return {\r\n    statusCode: 200,\r\n    body: JSON.stringify({\r\n      message: 'Echo: ' + event.body,\r\n      connectionId: event.requestContext.connectionId,\r\n    }),\r\n  };\r\n}; "],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAEO,IAAM,OAAO,OAAO,UAA2C;AACpE,UAAQ,IAAI,mCAAmC,KAAK,UAAU,OAAO,MAAM,CAAC,CAAC;AAE7E,SAAO;AAAA,IACL,YAAY;AAAA,IACZ,MAAM,KAAK,UAAU;AAAA,MACnB,SAAS,WAAW,MAAM;AAAA,MAC1B,cAAc,MAAM,eAAe;AAAA,IACrC,CAAC;AAAA,EACH;AACF;",
+  "names": []
+}

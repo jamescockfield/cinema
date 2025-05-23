@@ -1,8 +1,0 @@
-functions:
-  api:
-    handler: src/app/api/**/*.ts
-    events:
-      - http:
-          path: /api/{proxy+}
-          method: ANY
-          cors: true 

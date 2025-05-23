@@ -3,5 +3,5 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: ${self:service}-${self:provider.stage}-reserve-booking
-      VisibilityTimeout: 30
-      MessageRetentionPeriod: 1209600 # 14 days in seconds 
+      # Offline SQS will handle these properties automatically
+      # VisibilityTimeout and MessageRetentionPeriod are managed by serverless-offline-sqs 

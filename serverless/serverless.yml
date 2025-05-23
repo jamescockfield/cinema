@@ -1,37 +1,31 @@
-name: cinema-app
-
-frameworkVersion: '3'
+service: cinema-app
 
 provider:
   name: aws
   runtime: nodejs18.x
-  region: us-east-1
-  stage: ${opt:stage, 'dev'}
+  stage: dev
+  environment:
+    NODE_ENV: dev
 
 plugins:
-  - '@sls-next/serverless-component'
-  - serverless-offline-sqs
   - serverless-offline
+  - serverless-offline-sqs
   - serverless-dynamodb-local
 
-custom: ${file(./custom.yml)}
+# custom: ${file(./custom.yml)}
+custom:
+  serverless-offline:
+    httpPort: 4000
+    websocketPort: 4001
+    websocket:
+      enabled: true
+      port: 4001
+      host: localhost
 
-# Import resources
+# Import resources for offline use
 resources:
-  - ${file(./resources/websocket.yml)}
   - ${file(./resources/dynamodb.yml)}
   - ${file(./resources/sqs.yml)}
 
-# Import functions
 functions:
-  ${file(./functions/api.yml)}
-  ${file(./functions/websocket.yml)}
-  ${file(./functions/sqs.yml)}
-
-# Define your Next.js app
-nextApp:
-  component: '@sls-next/serverless-component'
-  inputs:
-    build:
-      env:
-        NODE_ENV: ${opt:stage, 'dev'} 
+  ${file(./functions.yml)}

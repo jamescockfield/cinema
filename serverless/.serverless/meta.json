@@ -1,0 +1,171 @@
+{
+  "C:\\Users\\james\\Documents\\projects\\cinema\\serverless\\serverless.yml": {
+    "versionFramework": "4.14.4",
+    "servicePath": "C:\\Users\\james\\Documents\\projects\\cinema\\serverless\\serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "cinema-app",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs18.x",
+        "stage": "dev",
+        "environment": {
+          "NODE_ENV": "dev"
+        }
+      },
+      "plugins": [
+        "serverless-offline",
+        "serverless-offline-sqs",
+        "serverless-dynamodb-local"
+      ],
+      "custom": {
+        "serverless-offline": {
+          "httpPort": 4000,
+          "websocketPort": 4001,
+          "websocket": {
+            "enabled": true,
+            "port": 4001,
+            "host": "localhost"
+          }
+        }
+      },
+      "resources": [
+        {
+          "Resources": {
+            "WebSocketConnectionsTable": {
+              "Type": "AWS::DynamoDB::Table",
+              "Properties": {
+                "TableName": "cinema-app-dev-ws-connections",
+                "AttributeDefinitions": [
+                  {
+                    "AttributeName": "connectionId",
+                    "AttributeType": "S"
+                  }
+                ],
+                "KeySchema": [
+                  {
+                    "AttributeName": "connectionId",
+                    "KeyType": "HASH"
+                  }
+                ],
+                "BillingMode": "PAY_PER_REQUEST",
+                "TimeToLiveSpecification": {
+                  "AttributeName": "ttl",
+                  "Enabled": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "Resources": {
+            "ReserveBookingQueue": {
+              "Type": "AWS::SQS::Queue",
+              "Properties": {
+                "QueueName": "cinema-app-dev-reserve-booking"
+              }
+            }
+          }
+        }
+      ],
+      "functions": "${file(./functions/api.yml):functions} ${file(./functions/websocket.yml):functions} ${file(./functions/sqs.yml):functions}"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "stage": "dev",
+      "environment": {
+        "NODE_ENV": "dev"
+      }
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "error": {
+      "message": "Failed to resolve placeholder '${file(./functions/api.yml):functions}' at path 'functions'. String value consist of variable which resolve with non-string value.",
+      "stack": "Error: Failed to resolve placeholder '${file(./functions/api.yml):functions}' at path 'functions'. String value consist of variable which resolve with non-string value.\n    at #replacePlaceholderInConfig (file:///C:/Users/james/.serverless/releases/4.14.4/package/dist/sf-core.js:695:35334)\n    at #handlePlaceholderNode (file:///C:/Users/james/.serverless/releases/4.14.4/package/dist/sf-core.js:695:30151)\n    at async file:///C:/Users/james/.serverless/releases/4.14.4/package/dist/sf-core.js:695:27961\n    at async processNodeAndHandleCompletion (file:///C:/Users/james/.serverless/releases/4.14.4/package/dist/sf-core.js:695:16742)",
+      "code": "RESOLVER_NON_STRING_VARIABLE_RESULT"
+    },
+    "serviceRawFile": "service: cinema-app\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  stage: dev\n  environment:\n    NODE_ENV: dev\n\nplugins:\n  - serverless-offline\n  - serverless-offline-sqs\n  - serverless-dynamodb-local\n\n# custom: ${file(./custom.yml)}\ncustom:\n  serverless-offline:\n    httpPort: 4000\n    websocketPort: 4001\n    websocket:\n      enabled: true\n      port: 4001\n      host: localhost\n\n# Import resources for offline use\nresources:\n  - ${file(./resources/dynamodb.yml)}\n  - ${file(./resources/sqs.yml)}\n\n# Import functions\nfunctions: \n  ${file(./functions/api.yml):functions}\n  ${file(./functions/websocket.yml):functions}\n  ${file(./functions/sqs.yml):functions}\n\n# Comment out the inline functions since we're importing them\n# functions:\n#   connectHandler:\n#     handler: src/aws/websocket/connect.handler\n#     events:\n#       - websocket:\n#           route: $connect\n#   disconnectHandler:\n#     handler: src/aws/websocket/disconnect.handler\n#     events:\n#       - websocket:\n#           route: $disconnect\n#   echoHandler:\n#     handler: src/handlers/echo.main\n#     events:\n#       - websocket:\n#           route: echo ",
+    "command": [
+      "offline"
+    ],
+    "options": {},
+    "orgId": "885c07f9-3596-4ad3-a6ac-4b1c9f393302",
+    "orgName": "jamescockfield",
+    "userId": "6BttfdgSYv9FXqhX2T",
+    "userName": "jamescockfield",
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  },
+  "/app/serverless/serverless.yml": {
+    "versionFramework": "4.14.4",
+    "servicePath": "/app/serverless/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "cinema-app",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs18.x",
+        "stage": "dev",
+        "environment": {
+          "NODE_ENV": "dev"
+        }
+      },
+      "plugins": [
+        "serverless-offline",
+        "serverless-offline-sqs",
+        "serverless-dynamodb-local"
+      ],
+      "custom": {
+        "serverless-offline": {
+          "httpPort": 4000,
+          "websocketPort": 4001,
+          "websocket": {
+            "enabled": true,
+            "port": 4001,
+            "host": "localhost"
+          }
+        }
+      },
+      "resources": [
+        "${file(./resources/dynamodb.yml)}",
+        "${file(./resources/sqs.yml)}"
+      ],
+      "functions": "${file(./functions.yml)}"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "stage": "dev",
+      "environment": {
+        "NODE_ENV": "dev"
+      }
+    },
+    "error": {
+      "message": "Unauthorized",
+      "stack": "Error: Unauthorized\n    at Authentication.getClientDataFromAccessKey (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:694:18481)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Authentication.getAuthenticatedData (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:694:239)\n    at async Authentication.authenticate (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:694:21968)\n    at async TraditionalRunner.resolveVariablesAndAuthenticate (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:698:2377)\n    at async TraditionalRunner.run (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:1271:27896)\n    at async route (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:1302:2779)\n    at async Object.run (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:1303:3661)\n    at async run2 (file:///root/.serverless/releases/4.14.4/package/dist/sf-core.js:1303:4815)"
+    },
+    "serviceRawFile": "service: cinema-app\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  stage: dev\n  environment:\n    NODE_ENV: dev\n\nplugins:\n  - serverless-offline\n  - serverless-offline-sqs\n  - serverless-dynamodb-local\n\n# custom: ${file(./custom.yml)}\ncustom:\n  serverless-offline:\n    httpPort: 4000\n    websocketPort: 4001\n    websocket:\n      enabled: true\n      port: 4001\n      host: localhost\n\n# Import resources for offline use\nresources:\n  - ${file(./resources/dynamodb.yml)}\n  - ${file(./resources/sqs.yml)}\n\nfunctions:\n  ${file(./functions.yml)}",
+    "command": [
+      "offline"
+    ],
+    "options": {
+      "config": "serverless/serverless.yml"
+    },
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}

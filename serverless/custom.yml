@@ -3,9 +3,15 @@ serverless-offline:
   lambdaPort: 4002
   websocketPort: 4001
   noPrependStageInUrl: true
+  useChildProcesses: true
   websocket:
     port: 4001
     host: localhost
+    enabled: true
+    routeSelectionExpression: $request.body.action
+    routes:
+      $connect: connectHandler
+      $disconnect: disconnectHandler
 
 serverless-offline-sqs:
   autoCreate: true
@@ -25,7 +31,7 @@ serverless-dynamodb-local:
   migrate: true
   seed: true
   seedDomain: seed
-  noStart: true
+  noStart: false
 
 redis:
   host: localhost

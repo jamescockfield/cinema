@@ -1,0 +1,21 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install curl for healthchecks
+RUN apk add --no-cache curl
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Expose the Serverless Offline port
+EXPOSE 4000
+
+# Start the Serverless Offline server
+CMD ["npx", "serverless", "offline", "-c", "serverless/serverless.yml"] 

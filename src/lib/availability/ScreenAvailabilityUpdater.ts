@@ -1,5 +1,4 @@
 import { injectable, inject, singleton } from 'tsyringe';
-import { RoomType } from '@/lib/websocket/types';
 import { ScreenAvailabilityCache } from './ScreenAvailabilityCache';
 import { ConnectionRepository } from '@/aws/repositories/ConnectionRepository';
 import { ApiGatewayClient } from '@/aws/websocket/ApiGatewayClient';

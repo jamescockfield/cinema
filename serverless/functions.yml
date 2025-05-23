@@ -1,0 +1,37 @@
+# API Gateway functions
+api:
+  handler: src/app/api/**/*.ts
+  events:
+    - http:
+        path: /api/{proxy+}
+        method: ANY
+        cors: true
+
+# WebSocket functions
+connectHandler:
+  handler: src/aws/websocket/connect.handler
+  events:
+    - websocket:
+        route: $connect
+
+disconnectHandler:
+  handler: src/aws/websocket/disconnect.handler
+  events:
+    - websocket:
+        route: $disconnect
+
+echoHandler:
+  handler: src/handlers/echo.main
+  events:
+    - websocket:
+        route: echo
+
+# SQS functions
+reserveBooking:
+  handler: src/aws/sqs/reserve-booking.handler
+  events:
+    - sqs:
+        arn:
+          Fn::GetAtt: [ReserveBookingQueue, Arn]
+        batchSize: 10
+        maximumBatchingWindow: 30 

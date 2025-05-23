@@ -9,9 +9,9 @@ services:
     command: redis-server --appendonly yes
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
   elasticmq:
     image: softwaremill/elasticmq-native:latest
@@ -19,11 +19,64 @@ services:
     ports:
       - '9324:9324'  # ElasticMQ REST API port
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:9324/health']
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9324/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: cinema-dynamodb
+    ports:
+      - '8000:8000'
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath /home/dynamodblocal/data/"
+    volumes:
+      - dynamodb_data:/home/dynamodblocal/data
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: cinema-frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - ELASTICMQ_URL=http://elasticmq:9324
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticmq:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: cinema-backend
+    ports:
+      - '4000:4000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - ELASTICMQ_URL=http://elasticmq:9324
+      - DYNAMODB_ENDPOINT=http://dynamodb-local:8000
+      - SERVERLESS_ACCESS_KEY
+    depends_on:
+      - redis
+      - elasticmq
+      - dynamodb-local
 
 volumes:
   redis_data:
+    driver: local
+  dynamodb_data:
     driver: local
